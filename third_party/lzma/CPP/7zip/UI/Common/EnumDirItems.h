@@ -3,23 +3,39 @@
 #ifndef __ENUM_DIR_ITEMS_H
 #define __ENUM_DIR_ITEMS_H
 
-#include "Common/Wildcard.h"
-#include "Windows/FileFind.h"
+#include "../../../Common/Wildcard.h"
+
+#include "../../../Windows/FileFind.h"
+
 #include "DirItem.h"
 
-void AddDirFileInfo(int phyParent, int logParent,
-    const NWindows::NFile::NFind::CFileInfoW &fi, CObjectVector<CDirItem> &dirItems);
-
-struct IEnumDirItemCallback
-{
-  virtual HRESULT ScanProgress(UInt64 numFolders, UInt64 numFiles, const wchar_t *path) = 0;
-};
+void AddDirFileInfo(int phyParent, int logParent, int secureIndex,
+    const NWindows::NFile::NFind::CFileInfo &fi, CObjectVector<CDirItem> &dirItems);
 
 HRESULT EnumerateItems(
     const NWildcard::CCensor &censor,
-    CDirItems &dirItems,
-    IEnumDirItemCallback *callback,
-    UStringVector &errorPaths,
-    CRecordVector<DWORD> &errorCodes);
+    NWildcard::ECensorPathMode pathMode,
+    const UString &addPathPrefix,
+    CDirItems &dirItems);
+
+
+struct CMessagePathException: public UString
+{
+  CMessagePathException(const char *a, const wchar_t *u = NULL);
+};
+
+
+HRESULT EnumerateDirItemsAndSort(
+    NWildcard::CCensor &censor,
+    NWildcard::ECensorPathMode pathMode,
+    const UString &addPathPrefix,
+    UStringVector &sortedPaths,
+    UStringVector &sortedFullPaths,
+    CDirItemsStat &st,
+    IDirItemsCallback *callback);
+
+#ifdef _WIN32
+void ConvertToLongNames(NWildcard::CCensor &censor);
+#endif
 
 #endif
